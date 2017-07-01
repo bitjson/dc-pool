@@ -7,6 +7,6 @@ import hash from 'hash.js'
  * @internal
  * @hidden (TypeDoc currently doesn't understand @internal)
  */
-export function createHash (algorithm: 'sha256') {
-  return hash.sha256()
+export function createHash (algorithm: 'ripemd160' | 'sha1' | 'sha224' | 'sha256' | 'sha384' | 'sha512') {
+  return hash[algorithm]()
 }

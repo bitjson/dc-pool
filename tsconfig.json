@@ -1,5 +1,4 @@
 {
-  "extends": "./config/tsconfig.strict",
   "compilerOptions": {
     "target": "es6",
     "outDir": "build/main",
@@ -12,6 +11,12 @@
     "listFiles": false,
     "traceResolution": false,
     "pretty": true,
+    "strictNullChecks": true,
+    // "forceConsistentCasingInFileNames": true, // waiting on: https://github.com/Microsoft/TypeScript/issues/16875
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitAny" : true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
     "lib" : [
       "es6"
     ],

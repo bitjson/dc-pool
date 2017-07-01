@@ -2239,6 +2239,13 @@ hash.js@^1.0.0, hash.js@^1.0.3:
     inherits "^2.0.3"
     minimalistic-assert "^1.0.0"
 
+hash.js@bitjson/hash.js:
+  version "1.1.2"
+  resolved "https://codeload.github.com/bitjson/hash.js/tar.gz/5295cc944cdd77f05415169a4b981820b0bc2d88"
+  dependencies:
+    inherits "^2.0.3"
+    minimalistic-assert "^1.0.0"
+
 hawk@~3.1.3:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/hawk/-/hawk-3.1.3.tgz#078444bd7c1640b0fe540d2c9b73d59678e8e1c4"
