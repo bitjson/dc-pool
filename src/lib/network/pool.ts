@@ -1,8 +1,9 @@
+import { Service } from './../services/services';
 import * as bcoin from 'bcoin'
 import { BcoinPacket, BcoinNetAddress, BcoinPeer } from '../../vendor/bcoin'
-import { } from 'rxjs'
+import { Subject, BehaviorSubject } from 'rxjs'
 
-import { NodeConnection, DatabaseConfiguration, Module, Blocks } from '../lib'
+import { NodeConnection, DatabaseConfiguration, Service } from '../lib'
 
 const network = 'main' // FIXME: should be configurable
 const NetAddress = bcoin.primitives.NetAddress
@@ -12,30 +13,68 @@ const GenesisBlock = Network.get(network).genesis
 
 export interface PoolOptions {
   nodes?: NodeConnection[],
-  databases?: DatabaseConfiguration[],
-  modules?: Module[]
+  databases: DatabaseConfiguration[], // FIXME: also accept a singular 'database' option
+  services?: Service[]
 }
 
 export class Pool {
 
-  readonly nodes: NodeConnection[]
-  readonly databases: DatabaseConfiguration[]
-  readonly modules: Module[]
+  readonly databases: DatabaseConfiguration[] // not a subject (should be constant)
+
+  readonly nodes: BehaviorSubject<NodeConnection[]> = new BehaviorSubject([])
+  readonly nodesAdded: Subject<NodeConnection[]>
+  readonly nodesRemoved: Subject<NodeConnection[]>
+
+  readonly services: BehaviorSubject<Service[]> = new BehaviorSubject([])
+  readonly servicesAdded: Subject<Service[]>
+  readonly servicesRemoved: Subject<Service[]>
+
   private _bcoinPeers: BcoinPeer[] = []
 
-  constructor (opts?: PoolOptions) {
-    this.nodes = opts && opts.nodes || []
-    this.databases = opts && opts.databases || []
-    this.modules = opts && opts.modules || []
-    this._createBcoinPeers(this.nodes)
-    this._activateModules(this.modules, this.databases)
+  constructor (opts: PoolOptions) {
+    this.databases = opts.databases // only required option
+    initPool(this)
+    this.useServices(opts.services || [])
+    this.connectNodes(opts.nodes || [])
   }
 
-  private _activateModules (modules: Module[], dbs: DatabaseConfiguration[]) {
-    modules.forEach((module) => {
-      module.configureDatabases(dbs)
-      module.initializeSubscriptions()
+  use (service: Service) { this.useServices([service]) }
+  stop (service: Service) { this.stopServices([service]) }
+  connectNode (node: NodeConnection) { this.connectNodes([node]) }
+  disconnectNode (node: NodeConnection) { this.disconnectNodes([node]) }
+
+  useServices (services: Service[]) {
+    services.forEach((service) => {
+      service._start(this)
     })
+    this.servicesAdded.next(services)
+  }
+
+  stopServices (services: Service[]) {
+    services.forEach((service) => {
+      service._stop(this)
+    })
+    this.servicesRemoved.next(services)
+  }
+
+  connectNodes (nodes: NodeConnection[]) {
+    nodes.forEach((node) => {
+      const addr: BcoinNetAddress = NetAddress.fromHostname(node.address + ':' + node.port, network)
+      const peer: BcoinPeer = Peer.fromOptions({
+        network: network,
+        hasWitness: () => false // FIXME: does this need to be configurable?
+      })
+      // this._listenToBcoinPeer(peer)
+      peer.connect(addr)
+      peer.tryOpen() // FIXME: error case?
+      this._bcoinPeers.push(peer)
+    })
+    this.nodesAdded.next(nodes)
+  }
+
+  disconnectNodes (nodes: NodeConnection[]) {
+    // TODO
+    this.nodesRemoved.next(nodes)
   }
 
   private _createBcoinPeers (nodes: NodeConnection[]) {
@@ -79,4 +118,26 @@ export class Pool {
 
 export class PoolListener {
   //
+}
+
+function initPool (self) {
+  mergeArrayActions(self.nodesAdded, self.nodesRemoved, self.nodes)
+  mergeArrayActions(self.servicesAdded, self.servicesRemoved, self.services)
+}
+
+function mergeArrayActions (add: Subject<any[]>, remove: Subject<any[]>, result: BehaviorSubject<any[]>) {
+  add.subscribe((addList) => {
+    const nextVal = result.getValue().concat(addList)
+    result.next(nextVal)
+  })
+  remove.subscribe((remList) => {
+    const nextVal = result.getValue()
+    remList.forEach((remItem) => {
+      const index = nextVal.indexOf(remItem)
+      if (index !== -1) {
+        nextVal.splice(index, 1)
+      }
+    })
+    result.next(nextVal)
+  })
 }

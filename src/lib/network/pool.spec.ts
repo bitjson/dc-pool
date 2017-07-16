@@ -5,7 +5,7 @@ test('Pool', t => {
   // const pool = new Pool({
   //   nodes: [],
   //   dbs: [],
-  //   modules: []
+  //   services: []
   // })
   t.deepEqual(true, true)
 })
