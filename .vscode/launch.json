@@ -1,0 +1,23 @@
+{
+  // Use IntelliSense to learn about possible Node.js debug attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Demo: log-block-headers",
+      "program": "${workspaceRoot}/src/demos/log-block-headers.ts",
+      "outFiles": [
+        "${workspaceRoot}/test/**/*.js",
+        "${workspaceRoot}/demos/**/*.js"
+      ],
+      "skipFiles": [
+        "${workspaceRoot}/node_modules/**/*.js",
+        "!${workspaceRoot}/node_modules/bcoin/**/*.js"
+      ],
+      "smartStep": true
+    }
+  ]
+}

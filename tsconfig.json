@@ -14,11 +14,12 @@
     "strictNullChecks": true,
     // "forceConsistentCasingInFileNames": true, // waiting on: https://github.com/Microsoft/TypeScript/issues/16875
     "noFallthroughCasesInSwitch": true,
-    "noImplicitAny" : true,
+    // "noImplicitAny" : true, // waiting on bcoin typings
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "lib" : [
-      "es6"
+      "es6",
+      "dom" // dirty hack around: https://github.com/ReactiveX/rxjs/issues/1986
     ],
     "types" : [
       "node"
