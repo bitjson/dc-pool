@@ -1,2 +1,3 @@
-export { NodeConnection } from './nodeConnection'
-export { Pool } from './pool'
+export * from './nodeConnection'
+export * from './pool'
+export * from './messages'

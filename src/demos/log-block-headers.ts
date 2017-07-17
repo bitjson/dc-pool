@@ -11,7 +11,7 @@ let pool = new Pool({
   // services: [ blocks ]
 })
 
-pool.use(blocks)
+pool.use(blocks).catch(console.error)
 
 pool.connectNode(bitcoind)
 // pool.disconnectNode(bitcoind)

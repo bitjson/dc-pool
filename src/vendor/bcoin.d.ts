@@ -1,17 +1,23 @@
+import { EventEmitter } from 'events'
+
 export interface BcoinPacket {
   cmd: string
-  block: any
   items: any
+}
+
+export interface BcoinBlockPacket extends BcoinPacket {
+  cmd: 'block',
+  block: any
 }
 
 export interface BcoinNetAddress {
   //
 }
 
-export interface BcoinPeer {
-  on (event: 'error', listener: (error: Error) => void): void
-  on (event: 'packet', listener: (message: BcoinPacket) => void): void
-  on (event: 'open', listener: () => void): void
+export interface BcoinPeer extends EventEmitter {
+  on (event: 'error', listener: (error: Error) => void): this
+  on (event: 'packet', listener: (message: BcoinPacket) => void): this
+  on (event: 'open', listener: () => void): this
 
   connect (addr: BcoinNetAddress): void
   tryOpen (): void
