@@ -1,7 +1,6 @@
-import { BcoinMemBlock } from '../../../../vendor/bcoin'
-
 import { DatabaseConfiguration, MongoDB } from '../../../lib'
 import { BlocksMongoDBAdapter } from './mongodb/blocks.adapter.mongodb'
+import { Block } from '../blocks'
 
 const supportedDatabases = [
   {
@@ -24,5 +23,5 @@ export function getDB (dbs: DatabaseConfiguration[]) {
 }
 
 export interface BlocksAdapter {
-  saveBlockHeader (data: BcoinMemBlock): Promise<BcoinMemBlock>
+  saveBlock (data: Block): Promise<Block>
 }

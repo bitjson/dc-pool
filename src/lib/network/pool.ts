@@ -19,12 +19,12 @@ export class Pool {
   readonly databases: DatabaseConfiguration[] // not a subject (should be constant)
 
   readonly nodes: BehaviorSubject<ConnectedNode[]> = new BehaviorSubject([])
-  readonly nodesAdded: Subject<ConnectedNode[]>
-  readonly nodesRemoved: Subject<ConnectedNode[]>
+  readonly nodesAdded: Subject<ConnectedNode[]> = new Subject()
+  readonly nodesRemoved: Subject<ConnectedNode[]> = new Subject()
 
   readonly services: BehaviorSubject<Service[]> = new BehaviorSubject([])
-  readonly servicesAdded: Subject<Service[]>
-  readonly servicesRemoved: Subject<Service[]>
+  readonly servicesAdded: Subject<Service[]> = new Subject()
+  readonly servicesRemoved: Subject<Service[]> = new Subject()
 
   // message streams for each type of protocol message
   readonly messages = {
@@ -36,7 +36,7 @@ export class Pool {
   constructor (opts: PoolOptions) {
     this.databases = opts.databases // only required option
     _initPool(this)
-    this.useServices(opts.services || [])
+    this.useServices(opts.services || []) // TODO: throw on failures?
     this.connectNodes(opts.nodes || [])
   }
 

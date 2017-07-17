@@ -7,9 +7,9 @@ const req = (path) => 'require("' + path + '")';
 const pathUp = (levels) => Array.from(Array(levels), () => '../').join('');
 
 // replace instances of pkg.name with the proper route to the build being tested
-const makeTransform = (filePath, buildPath) => {
+const makeTransform = (filePath, buildPath, globDepth) => {
   const buildPathParts = buildPath.split(separator);
-  const pathToRoot = pathUp(filePath.split(separator).length - 2);
+  const pathToRoot = pathUp(filePath.split(separator).length - globDepth);
   const placeholder = req(pkg.name);
   return new Transform({
     transform(chunk, encoding, done) {
@@ -25,13 +25,10 @@ const makeTransform = (filePath, buildPath) => {
 
 // copy, then watch for changes to the tests
 const testsFromRoot = 'build/main/**/*.spec.js';
-const demos = 'build/main/demos**/*.js';
 const watchMode = process.argv.indexOf('-w') !== -1 ? true : false;
 const task = watchMode ? cpx.watch : cpx.copy;
 
 task(testsFromRoot, 'test', {
-  transform: (filePath) => makeTransform(filePath, pkg.main)
+  transform: (filePath) => makeTransform(filePath, pkg.main, 2)
 });
-task(demos, 'demos', {
-  transform: (filePath) => makeTransform(filePath, pkg.main)
-});
+

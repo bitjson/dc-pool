@@ -1,12 +1,11 @@
 import * as mongoose from 'mongoose'
 
-import { BcoinMemBlock } from '../../../../../vendor/bcoin'
-import { MongoDB, DatabaseConfiguration } from '../../../../lib'
+import { MongoDB, DatabaseConfiguration, Block } from '../../../../lib'
+
 import { BlocksAdapter } from '../blocksAdapters'
+import { BlockSchema } from './schemas'
 
-import { BlockHeaderSchema } from './schemas'
-
-const BlockHeader = mongoose.model('BlockHeader', new mongoose.Schema(BlockHeaderSchema))
+const BlockModel = mongoose.model('Block', new mongoose.Schema(BlockSchema))
 
 export class BlocksMongoDBAdapter implements BlocksAdapter {
   private _configuration: MongoDB
@@ -17,8 +16,8 @@ export class BlocksMongoDBAdapter implements BlocksAdapter {
     this._db = mongoose.createConnection(this._configuration.connect)
   }
 
-  saveBlockHeader (data: BcoinMemBlock): Promise<BcoinMemBlock> {
-    const header = new BlockHeader(data)
+  saveBlock (data: Block): Promise<Block> {
+    const header = new BlockModel(data)
     return new Promise((resolve, reject) => {
       header.save((err, doc) => {
         if (err) {
