@@ -5,18 +5,18 @@ import { BcoinPacket, BcoinBlockPacket, BcoinPeer } from '../../vendor/bcoin'
 
 import { Message, Pool } from './network'
 
-const network = 'main' // FIXME: should be configurable
-const NetAddress = bcoin.primitives.NetAddress
-
 export class NodeConnection {
   address: string
   port: number
+  network: string
   constructor (opts: {
     address: string,
-    port?: number
+    port?: number,
+    network?: string
   }) {
     this.address = opts.address
-    this.port = opts.port || 8333
+    this.network = opts.network || 'main'
+    this.port = opts.port || bcoin.network.get(this.network).port
   }
 }
 
@@ -29,7 +29,7 @@ export class ConnectedNode {
   constructor (public connection: NodeConnection, public instance: BcoinPeer, pool: Pool) {
     const messages = Observable.fromEvent(instance, 'packet').map(packet => new Message(packet as BcoinPacket, this))
     this.subscription = messages.subscribe(pool.messages.all)
-    instance.connect(NetAddress.fromHostname(connection.address + ':' + connection.port, network))
+    instance.connect(bcoin.primitives.NetAddress.fromHostname(connection.address + ':' + connection.port, connection.network))
     instance.tryOpen() // FIXME: handle any error cases
   }
 

@@ -5,11 +5,6 @@ import { Subject, BehaviorSubject, Observable } from 'rxjs'
 import { DatabaseConfiguration, Service } from '../lib'
 import { NodeConnection, ConnectedNode, Message, BlockMessage } from './network'
 
-const network = 'main' // FIXME: should be configurable
-const Peer = bcoin.net.Peer
-const Network = bcoin.network
-const GenesisBlock = Network.get(network).genesis
-
 export interface PoolOptions {
   nodes?: NodeConnection[],
   databases: DatabaseConfiguration[], // FIXME: also accept a singular 'database' option
@@ -60,8 +55,8 @@ export class Pool {
 
   connectNodes (nodes: NodeConnection[]) {
     this.nodesAdded.next(nodes.reduce((addedNodes, node) => {
-      const instance: BcoinPeer = Peer.fromOptions({
-        network: network,
+      const instance: BcoinPeer = bcoin.net.Peer.fromOptions({
+        network: node.network,
         hasWitness: () => false // FIXME: does this need to be configurable?
       })
       return addedNodes.concat(new ConnectedNode(node, instance, this))

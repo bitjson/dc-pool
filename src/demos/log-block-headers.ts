@@ -1,7 +1,11 @@
+import * as bcoin from 'bcoin'
 import { Pool, NodeConnection, MongoDB, BlockService } from 'dc-pool'
 // import { Pool, NodeConnection, MongoDB, Blocks, BlockHeaders, GenesisBlock } from 'dc-pool'
 
-const bitcoind = new NodeConnection({ address: '127.0.0.1', port: 8333 })
+const network = 'main'
+const GenesisBlock = bcoin.network.get(network).genesis
+
+const bitcoind = new NodeConnection({ address: '127.0.0.1', network: network })
 const mongo = new MongoDB({ connect: 'mongodb://localhost/dc-pool' })
 const blocks = new BlockService()
 
@@ -18,7 +22,7 @@ pool.connectNode(bitcoind)
 
 console.log(pool)
 
-// blocks.getBlock('HASH').then(console.log)
+blocks.getBlock(GenesisBlock.hash).then(console.log)
 
 // blocks.hot.subscribe(() => {})
 
