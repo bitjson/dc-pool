@@ -4,13 +4,16 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch Demo: log-block-headers",
-      "program": "${workspaceRoot}/src/demos/log-block-headers.ts",
+      "name": "Launch Example: All",
+      "program": "${workspaceRoot}/src/demos/full.ts",
       "outFiles": [
         "${workspaceRoot}/build/main/**/*.js"
       ],
-      "stopOnEntry": true,
-      "smartStep": true
+      "skipFiles": [
+        "${workspaceRoot}/node_modules/**/*.js"
+      ]
+      // "stopOnEntry": true,
+      // "smartStep": true
     }
   ]
 }

@@ -2,13 +2,11 @@ import * as bcoin from 'bcoin'
 import { BcoinPacket, BcoinBlockPacket, BcoinPeer } from '../../vendor/bcoin'
 import { Subject, BehaviorSubject, Observable } from 'rxjs'
 
-import { DatabaseConfiguration, Service } from '../lib'
-import { NodeConnection, ConnectedNode, Message, BlockMessage } from './network'
+import { DatabaseConfiguration, NodeConnection, ConnectedNode, Message, BlockMessage, Network } from '../lib'
 
 export interface PoolOptions {
   nodes?: NodeConnection[],
-  databases: DatabaseConfiguration[], // FIXME: also accept a singular 'database' option
-  services?: Service[]
+  network: Network
 }
 
 /**
@@ -16,15 +14,11 @@ export interface PoolOptions {
  */
 export class Pool {
 
-  readonly databases: DatabaseConfiguration[] // not a subject (should be constant)
+  readonly network: Network
 
   readonly nodes: BehaviorSubject<ConnectedNode[]> = new BehaviorSubject([])
   readonly nodesAdded: Subject<ConnectedNode[]> = new Subject()
   readonly nodesRemoved: Subject<ConnectedNode[]> = new Subject()
-
-  readonly services: BehaviorSubject<Service[]> = new BehaviorSubject([])
-  readonly servicesAdded: Subject<Service[]> = new Subject()
-  readonly servicesRemoved: Subject<Service[]> = new Subject()
 
   // message streams for each type of protocol message
   readonly messages = {
@@ -34,59 +28,42 @@ export class Pool {
   }
 
   constructor (opts: PoolOptions) {
-    this.databases = opts.databases // only required option
-    _initPool(this)
-    this.useServices(opts.services || []) // TODO: throw on failures?
+    this.network = opts.network
+
+    // split the firehose into observables for each message type
+    const block = this.messages.all.filter(message => message.packet.cmd === 'block') as Observable<BlockMessage>
+    // TODO: filter them all
+    // TODO: PERF: split messages.all in a single switch statement rather than
+    // this big list of filters
+
+    // subscribe each of the pools subjects to the proper observable
+    block.subscribe(this.messages.block)
+    // TODO: subscribe the rest
+
+    _mergeArrayActions<ConnectedNode>(this.nodesAdded, this.nodesRemoved, this.nodes)
     this.connectNodes(opts.nodes || [])
   }
 
-  use (service: Service) { return this.useServices([service]) }
-  stop (service: Service) { return this.stopServices([service]) }
   connectNode (node: NodeConnection) { return this.connectNodes([node]) }
   disconnectNode (node: NodeConnection) { return this.disconnectNodes([node]) }
 
-  useServices (services: Service[]) {
-    return Promise.all(services.map(service => service._start(this))).then(() => this.servicesAdded.next(services))
-  }
-
-  stopServices (services: Service[]) {
-    return Promise.all(services.map(service => service._stop(this))).then(() => this.servicesRemoved.next(services))
-  }
-
   connectNodes (nodes: NodeConnection[]) {
-    this.nodesAdded.next(nodes.reduce((addedNodes, node) => {
-      const instance: BcoinPeer = bcoin.net.Peer.fromOptions({
-        network: node.network,
-        hasWitness: () => false // FIXME: does this need to be configurable?
-      })
-      return addedNodes.concat(new ConnectedNode(node, instance, this))
+    this.nodesAdded.next(nodes.reduce((addedNodes, connection) => {
+      if (connection.network !== this.network) {
+        throw new Error(`A ${connection.network} NodeConnection cannot be added to a ${this.network} pool.`)
+      }
+      const node = new ConnectedNode(connection)
+      node.messages.subscribe(this.messages.all)
+      return addedNodes.concat(node)
     }, [] as ConnectedNode[]))
   }
 
   disconnectNodes (nodes: NodeConnection[]) {
-    // TODO:
+    throw new Error('TODO')
     // select nodes by provided array
-    // disconnect each
+    // disconnect each properly
     // this.nodesRemoved.next(removedNodes)
   }
-}
-
-function _initPool (pool: Pool) {
-  _mergeArrayActions<ConnectedNode>(pool.nodesAdded, pool.nodesRemoved, pool.nodes)
-  _mergeArrayActions<Service>(pool.servicesAdded, pool.servicesRemoved, pool.services)
-
-  // DEBUG:
-  pool.messages.all.do(console.log)
-
-  // split the firehose into observables for each message type
-  const block = pool.messages.all.filter(message => message.packet.cmd === 'block') as Observable<BlockMessage>
-  // TODO: filter them all
-  // TODO: PERF: split messages.all in a single switch statement rather than
-  // this big list of filters
-
-  // subscribe each of the pools subjects to the proper observable
-  block.subscribe(pool.messages.block)
-  // TODO: subscribe the rest
 }
 
 function _mergeArrayActions<T> (add: Subject<T[]>, remove: Subject<T[]>, result: BehaviorSubject<T[]>) {
