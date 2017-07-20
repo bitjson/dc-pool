@@ -18,7 +18,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "lib" : [
-      "es6",
+      "es2017",
       "dom" // dirty hack around: https://github.com/ReactiveX/rxjs/issues/1986
     ],
     "types" : [
