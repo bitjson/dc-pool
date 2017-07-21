@@ -2,7 +2,7 @@ import * as bcoin from 'bcoin'
 import { BcoinPacket, BcoinBlockPacket, BcoinPeer } from '../../vendor/bcoin'
 import { Subject, BehaviorSubject, Observable } from 'rxjs'
 
-import { DatabaseConfiguration, NodeConnection, ConnectedNode, Message, BlockMessage, Network } from '../lib'
+import { NodeConnection, ConnectedNode, Message, BlockMessage, InvMessage, Network } from '../lib'
 
 export interface PoolOptions {
   nodes?: NodeConnection[],
@@ -23,7 +23,8 @@ export class Pool {
   // message streams for each type of protocol message
   readonly messages = {
     all: new Subject() as Subject<Message>, // the firehose
-    block: new Subject() as Subject<BlockMessage>
+    block: new Subject() as Subject<BlockMessage>,
+    inv: new Subject() as Subject<InvMessage>
     // TODO: add the rest
   }
 
@@ -32,12 +33,14 @@ export class Pool {
 
     // split the firehose into observables for each message type
     const block = this.messages.all.filter(message => message.packet.cmd === 'block') as Observable<BlockMessage>
+    const inv = this.messages.all.filter(message => message.packet.cmd === 'inv') as Observable<InvMessage>
     // TODO: filter them all
     // TODO: PERF: split messages.all in a single switch statement rather than
     // this big list of filters
 
     // subscribe each of the pools subjects to the proper observable
     block.subscribe(this.messages.block)
+    inv.subscribe(this.messages.inv)
     // TODO: subscribe the rest
 
     _mergeArrayActions<ConnectedNode>(this.nodesAdded, this.nodesRemoved, this.nodes)

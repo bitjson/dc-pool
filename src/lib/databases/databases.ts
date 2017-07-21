@@ -1,5 +1,1 @@
-export * from './mongodb'
-
-export interface DatabaseConfiguration {
-  //
-}
+export * from './mongodb/mongodb'

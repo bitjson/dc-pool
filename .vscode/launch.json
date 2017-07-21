@@ -5,15 +5,17 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Example: All",
-      "program": "${workspaceRoot}/src/demos/full.ts",
+      "program": "${workspaceRoot}/src/examples/all.ts",
       "outFiles": [
         "${workspaceRoot}/build/main/**/*.js"
       ],
       "skipFiles": [
-        "${workspaceRoot}/node_modules/**/*.js"
-      ]
-      // "stopOnEntry": true,
-      // "smartStep": true
+        "<node_internals>/**/*.js",
+        "${workspaceRoot}/node_modules/**/*.js",
+        "$!{workspaceRoot}/node_modules/bcoin/**/*.js"
+      ],
+      "stopOnEntry": true,
+      "smartStep": true
     }
   ]
 }

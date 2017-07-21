@@ -1,5 +1,9 @@
 import * as mongoose from 'mongoose'
 
+export const TransactionSchema = {
+  //
+}
+
 export const BlockSchema = {
   hash: { type: String, unique: true },
   height: Number,
@@ -13,5 +17,5 @@ export const BlockSchema = {
   ts: Number,
   bits: Number,
   nonce: Number,
-  txs: [String]
+  txs: [ TransactionSchema ]
 }

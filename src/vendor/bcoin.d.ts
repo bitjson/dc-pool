@@ -1,9 +1,8 @@
-import { BcoinNetAddress } from './bcoin.d';
 import { EventEmitter } from 'events'
 
 export interface BcoinPacket {
+  type: number
   cmd: string
-  items: any
 }
 
 export interface BcoinBlockPacket extends BcoinPacket {
@@ -24,6 +23,10 @@ export interface BcoinVersionPacket extends BcoinPacket {
   noRelay: boolean
 }
 
+export interface BcoinInvPacket extends BcoinPacket {
+  cmd: 'inv',
+  items: string[]
+}
 
 export interface BcoinNetAddress {
   //
@@ -39,18 +42,18 @@ export interface BcoinPeer extends EventEmitter {
 
   getBlock (hash: string[]): void
   getData (req: any): void
+  sendGetBlocks (locator: string[], stop?: string): void
 }
 
 export interface BcoinMemBlock {
-
-  toBlock (): BcoinBlock
-
   version: number,
   prevBlock: string,
   merkleRoot: string,
   ts: number,
   bits: number,
   nonce: number
+
+  toBlock (): BcoinBlock
 }
 
 export interface BcoinBlock {
