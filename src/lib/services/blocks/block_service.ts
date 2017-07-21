@@ -1,6 +1,9 @@
 import { Subject, Observable } from 'rxjs'
 import * as bcoin from 'bcoin'
 
+import { BcoinUtil } from '../../../vendor/bcoin'
+const BcoinUtil = bcoin.util as BcoinUtil
+
 import { Pool, Network, Block, BlockMessage, InvMessage, ConnectedNode } from '../../lib' // TODO: make a separately installed package
 
 import { BlockServiceDB } from './block_service_db'
@@ -50,11 +53,11 @@ export class BlockService {
  // Start a blocks-first sync with the provided node
 function startSync (db: BlockServiceDB) {
   return async (node: ConnectedNode) => {
-    const agent = (await node.version.toPromise()).agent
+    const agent = await node.getAgent()
 
     // get the highest block we have on file for their user-agent
     const block = await db.getHighestBlockForAgent(agent)
-    const [ hash, height ] = (block !== null) ? [ block.hash, block.height ] : [ bcoin.network.get(node.connection.network).genesis.hash, 0 ]
+    const [hash, height] = (block !== null) ? [block.hash, block.height] : [bcoin.network.get(node.connection.network).genesis.hash, 0]
 
     console.log(`#### Sync starting for ${agent} at Block #${height} ####`)
 
@@ -62,8 +65,9 @@ function startSync (db: BlockServiceDB) {
     const inv = node.messages.filter(message => message.packet.cmd === 'inv') as Observable<InvMessage>
     inv.subscribe(message => {
       console.log(`#### inv received from syncing node ${agent} ####`)
-      console.log(message.packet.items)
       // if inv contains the block hashes, swap the endianness, then:
+      const headerHashes = swapEndianness(message.packet.items)
+      console.log(headerHashes)
 
       // ask the db if we're missing any blocks known by this node
       // operation should both record the agent's knowledge of blocks, and report if we're missing any
@@ -78,7 +82,6 @@ function startSync (db: BlockServiceDB) {
     // ask for the next 500 blocks
     node.instance.sendGetBlocks([hash])
 
-
     // whenever we store something, also emit it to any observers
   }
 }
@@ -88,4 +91,8 @@ function stopSync (db: BlockServiceDB) {
   return async (node: ConnectedNode) => {
     // stop and prepare for disconnect
   }
+}
+
+function swapEndianness (items: string[]) {
+  return items.reduce((array, hash) => array.concat(BcoinUtil.revHex(hash)), [] as string[])
 }

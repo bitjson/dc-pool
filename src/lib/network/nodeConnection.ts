@@ -65,4 +65,8 @@ export class ConnectedNode {
     this.instance.connect(bcoin.primitives.NetAddress.fromHostname(connection.address + ':' + connection.port, connection.network))
     this.instance.tryOpen() // FIXME: handle any error cases
   }
+
+  async getAgent () {
+    return (await this.version.toPromise()).agent
+  }
 }

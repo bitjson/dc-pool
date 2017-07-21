@@ -92,3 +92,9 @@ export interface BcoinTransaction {
   outputs: any[] // TODO: outputs object
   locktime: number
 }
+
+// bcoin.util
+export interface BcoinUtil {
+  /* Swap the endianness of a hex string */
+  revHex (hash: string): string
+}
